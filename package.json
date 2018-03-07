@@ -1,0 +1,86 @@
+{
+  "name": "webpack",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "antd": "^3.2.2",
+    "babel-plugin-import": "^1.6.5",
+    "browser-cookies": "^1.2.0",
+    "moment": "^2.20.1",
+    "prop-types": "^15.6.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-helmet": "^5.2.0",
+    "react-redux": "^5.0.7",
+    "react-router-dom": "^4.2.2",
+    "redux": "^3.7.2",
+    "store": "^2.0.12"
+  },
+  "devDependencies": {
+    "autoprefixer": "^8.0.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-react-app": "^3.1.1",
+    "chalk": "^2.3.1",
+    "css-loader": "^0.28.9",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "html-webpack-plugin": "^2.30.1",
+    "less": "^3.0.1",
+    "less-loader": "^4.0.5",
+    "less-plugin-clean-css": "^1.5.1",
+    "postcss-flexbugs-fixes": "^3.3.0",
+    "postcss-loader": "^2.1.0",
+    "react-app": "^1.1.2",
+    "style-loader": "^0.20.2",
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "scripts": {
+    "start": "node scripts/start.js",
+    "build": "node scripts/build.js",
+    "test": "node scripts/test.js --env=jsdom",
+    "new": "node scripts/new-module",
+    "dll": "webpack --config config/webpack.config.dll.js"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}"
+    ],
+    "setupFiles": [
+      "<rootDir>/config/polyfills.js"
+    ],
+    "testMatch": [
+      "<rootDir>/src/**/__tests__/**/*.js?(x)",
+      "<rootDir>/src/**/?(*.)(spec|test).js?(x)"
+    ],
+    "testEnvironment": "node",
+    "testURL": "http://localhost",
+    "transform": {
+      "^.+\\.(js|jsx)$": "<rootDir>/node_modules/babel-jest",
+      "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
+      "^(?!.*\\.(js|jsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
+    },
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$"
+    ],
+    "moduleNameMapper": {
+      "^react-native$": "react-native-web"
+    },
+    "moduleFileExtensions": [
+      "web.js",
+      "js",
+      "json",
+      "web.jsx",
+      "jsx"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "proxy": "http://m.maizuo.com"
+}
