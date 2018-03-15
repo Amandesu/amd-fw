@@ -474,14 +474,15 @@ var requirejs, require, define;
                     url = context.nameToUrl(normalizedName);
                 }
             }
-
             //If the id is a plugin id that cannot be determined if it needs
             //normalization, stamp it with a unique ID so two matching relative
             //ids that may conflict can be separate.
             suffix = prefix && !pluginModule && !isNormalized ?
                      '_unnormalized' + (unnormalizedCounter += 1) :
                      '';
-
+            console.log((prefix ?
+                prefix + '!' + normalizedName :
+                normalizedName) + suffix)
             return {
                 prefix: prefix,
                 name: normalizedName,
@@ -1446,13 +1447,12 @@ var requirejs, require, define;
                         //Some defines could have been added since the
                         //require call, collect them.
                         intakeDefines();
-                        console.log(deps, makeModuleMap(null, relMap))
                         requireMod = getModule(makeModuleMap(null, relMap));
 
                         //Store if map config should be applied to this require
                         //call for dependencies.
                         requireMod.skipMap = options.skipMap;
-
+                        
                         requireMod.init(deps, callback, errback, {
                             enabled: true
                         });

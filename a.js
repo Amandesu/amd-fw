@@ -3,7 +3,7 @@
     size: "unisize"
 });
  */
-define(function () {
+define(["./public/src/app.js"],function () {
     //Do setup work here
     return {
         name:"app"

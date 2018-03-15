@@ -1,13 +1,18 @@
 
-require.config({
+/* require.config({
     baseUrl: "./src",
     paths: {
         app:"app"
     }
-});
+}); */
 
-require( ["app", "./src/app1.js"],
+require( ["./src/app.js", "./src/app1.js", "./src/m/app2.js", "../a.js"],
     function(someModule,    myModule) {
+        console.log(1)
     }
 );
 
+// require流程
+// 1.运行require, 建立context，加载配置
+// 2.运行context.requrie, 创建Module,         
+// 3.Module初始化加载依赖，               

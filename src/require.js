@@ -1765,7 +1765,6 @@ var requirejs, require, define;
         //Find the right context, use default
         var context, config,
             contextName = defContextName;
-        console.log(deps)
         // Determine if have config object in the call.
         if (!isArray(deps) && typeof deps !== 'string') {
             // deps is a config object
