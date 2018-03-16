@@ -480,9 +480,7 @@ var requirejs, require, define;
             suffix = prefix && !pluginModule && !isNormalized ?
                      '_unnormalized' + (unnormalizedCounter += 1) :
                      '';
-            console.log((prefix ?
-                prefix + '!' + normalizedName :
-                normalizedName) + suffix)
+           
             return {
                 prefix: prefix,
                 name: normalizedName,
@@ -1186,6 +1184,7 @@ var requirejs, require, define;
             },
 
             emit: function (name, evt) {
+                console.log(this, name)
                 each(this.events[name], function (cb) {
                     cb(evt);
                 });

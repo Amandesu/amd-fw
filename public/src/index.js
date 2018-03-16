@@ -6,9 +6,9 @@
     }
 }); */
 
-require( ["./src/app.js", "./src/app1.js", "./src/m/app2.js", "../a.js"],
-    function(someModule,    myModule) {
-        console.log(1)
+require( ["./src/app.js", "./src/app1.js", "./src/m/app2.js"],
+    function(a, b, c) {
+        console.log(a, b, c)
     }
 );
 

@@ -3,9 +3,10 @@
     size: "unisize"
 });
  */
-define(["../app.js"],function () {
+define(["./src/app.js"],function (a) {
+    console.log(a)
     //Do setup work here
     return {
-        name:"app"
+        name:"app2"
     }
 });
