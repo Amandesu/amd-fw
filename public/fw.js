@@ -170,24 +170,24 @@ var fwjs, require, define;
                     //if (!hasProp(context.defQueueMap, id)) {
                     this.load();
                 } else if (!this.defining){
-                    this.defining = true;        // defining下面代码每个模块只执行一次
-                    if (isFunction(factory)) {   // 模块的factory只允许是函数
+                    this.defining = true;              // defining下面代码每个模块只执行一次
+                    if (isFunction(factory)) {         // 模块的factory只允许是函数
+                        // 只有模块的依赖全部执行完，才会运行factory
                         if (this.depCount < 1) {       // 只有暴露出exports defined属性才为true
                             exports = factory.apply(this, depExports)
+                            this.exports = exports;
+                            if (this.map.isDefine) {
+                                defined[id] = exports;
+                            }
                         }
-                        this.exports = exports;
-                        if (this.map.isDefine) {
-                            defined[id] = exports;
-                        }
-                    }     
-                    this.defining = false;
-                    this.defined = true;        
-                    
+                        this.defining = false;
+                        this.defined = true;   
+                    }       
                     if (this.defined && !this.defineEmitted) {
                         this.defineEmitted = true;
                         this.emit('defined', this.exports);
                         this.defineEmitComplete = true;
-                    } 
+                    }
                 }
                
             },
