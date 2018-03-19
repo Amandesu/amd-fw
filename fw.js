@@ -1,6 +1,5 @@
 var fwjs, require, define;
-
-(function (global, setTimeout) {
+(function (global) {
     var req, 
         ob = Object.prototype,
         toString = ob.toString,
@@ -20,29 +19,23 @@ var fwjs, require, define;
     function getOwn(obj, prop) {
         return hasOwn.call(obj, prop) && obj[prop];
     }
-    var path = {};
-    path.resolve = function(base, relative) {
-        var parentDots = "";
-        var basePrefix = ""
-        if (!base) {
-            return relative;
-        }
-        base = base.replace(/(\.\.\/)+/, function(str) {
-            basePrefix = str;
-            return ""
-        })
-        base = base.split("/");
-        relative = relative.replace(/^\.\//, "").replace(/(\.\.\/)+/, function(str) {
-            parentDots = str;
-            return ""
-        });
-        while (parentDots) {
-            base = base.slice(0, -1);
-            parentDots = parentDots.substring(3); 
-        } 
-        return basePrefix+base.join("/").concat("/"+relative)
+    // 创建script节点
+    function createScriptNode(){
+        var node =  document.createElement('script');
+        node.type = 'text/javascript';
+        node.charset = 'utf-8';
+        node.async = true;
+        return node;
+    };
+    // 载入js文件
+    function loadScript(fn, moduleName, url){
+        var node = createScriptNode();
+        node.setAttribute('data-fwmodule', moduleName);
+        node.addEventListener('load', fn, false);
+        node.src = url;
+        head.appendChild(node)
     }
-    function newContext(){
+    function createContext(){
         var context = {},
             registry = {},
             undefEvents = {},
@@ -51,10 +44,6 @@ var fwjs, require, define;
             defQueue=[],
             requireCounter = 1
         ;
-        function normalize(name, parentName){
-            name = name.replace(/^\.\//, "")
-            return path.resolve(parentName, name)
-        }
         function makeModuleMap(name, parentModuleMap){
             var isDefine = true,
                 normalizedName = "",
@@ -62,24 +51,17 @@ var fwjs, require, define;
                 url = name,
                 parentName = parentModuleMap ? parentModuleMap.name : "";
             if (!name) {
-                if (!name) {
                     isDefine = false;
                     name = 'fw' + (requireCounter += 1);
-                }
             }
-            if (name) {
-                 //normalizedName = normalize(name, parentName);
-                 normalizedName = name;
-                 isNormalized = true;
-                //url = context.nameToUrl(normalizedName); */
-            }
+            // 在这里并没有对id和name进行处理 主要是不支持config
             return {
-                name: normalizedName,
+                name: name,
                 parentMap: parentModuleMap,
                 url: name,
                 originalName: originalName,
                 isDefine: isDefine,
-                id: normalizedName
+                id: name
             };
         }
         function getModule(depMap) {
@@ -102,21 +84,17 @@ var fwjs, require, define;
             this.depCount = 0;
         }
         Module.prototype = {
-            init: function(depMaps, factory, options){
+            // 模块初始化
+            init: function(depMaps, factory){
                 if (this.inited) {
                     return;
                 }
-                options = options || {};
                 this.factory = factory;
                 this.inited = true;
-                this.depMaps = depMaps && depMaps.slice(0);
-
-                if (options.enabled || this.enabled) {
-                    this.enable();
-                } else {
-                    this.check();
-                }
+                this.depMaps = depMaps || [];
+                this.enable();
             },
+            // 启用模块
             enable:function(){
                 this.enabled = true;
                 this.enabling = true;
@@ -141,55 +119,50 @@ var fwjs, require, define;
                             fn(defined[depMap.id]);
                         } else {
                             mod = getModule(depMap);
+                            // 绑定defined事件，监听依赖的载入，每一个依赖载入完成，模块都会收集依赖的exports，但所有的依赖载入完毕模块才会运行 
                             mod.on("defined", fn)  
                         }
                         mod = registry[depMap.id];
                         if (mod && !mod.enabled) {
-                            //context.enable(depMap, this);
                             mod.enable()
                         }
-                        //console.log(mod)
                     }
                 }.bind(this))
-
                 this.enabling = false;
                 this.check();
             },
+            // 执行模块
             check:function(){
                 if (!this.enabled || this.enabling) {
                     return;
                 }
-                var err, cjsModule,
-                    id = this.map.id,
+                var id = this.map.id,
                     depExports = this.depExports,
                     exports = this.exports,
                     factory = this.factory;
-
-                
                 if (!this.inited) {
-                    //if (!hasProp(context.defQueueMap, id)) {
-                    this.load();
+                    this.load(); //  
                 } else if (!this.defining){
-                    this.defining = true;              // defining下面代码每个模块只执行一次
-                    if (isFunction(factory)) {         // 模块的factory只允许是函数
-                        // 只有模块的依赖全部执行完，才会运行factory
-                        if (this.depCount < 1) {       // 只有暴露出exports defined属性才为true
+                    this.defining = true;                               // defining下面代码每个模块只执行一次
+                    if (isFunction(factory)) {                          // 模块的factory只允许是函数
+                                                                        // 只有模块的依赖全部执行完，才会运行factory
+                        if (this.depCount < 1 && !this.defined) {       // 只有暴露出exports defined属性才为true
                             exports = factory.apply(this, depExports)
                             this.exports = exports;
                             if (this.map.isDefine) {
                                 defined[id] = exports;
                             }
-                        }
-                        this.defining = false;
-                        this.defined = true;   
+                            this.defined = true; 
+                        }  
                     }       
+                    this.defining = false;
                     if (this.defined && !this.defineEmitted) {
                         this.defineEmitted = true;
+                         
                         this.emit('defined', this.exports);
                         this.defineEmitComplete = true;
                     }
-                }
-               
+                }    
             },
             load(){
                 if (this.loaded) {
@@ -199,9 +172,9 @@ var fwjs, require, define;
                 var url = this.map.url;
 
                 //Regular dependency.
-                if (!urlLoaded[url]) {
+                if (!urlLoaded[url]) {       
                     urlLoaded[url] = true;
-                    req.load(context, this.map.id, url) 
+                    loadScript(context.onScriptLoad, this.map.id, url) 
                 }
             },
             on: function (name, cb) {
@@ -218,13 +191,6 @@ var fwjs, require, define;
                 })
             }
         }
-        // require函数
-        function localRequire(deps, callback){
-            //console.log(deps, callback)
-            var requireMod = getModule(makeModuleMap(null));
-            requireMod.init(deps, callback, {enabled:true});
-            
-        }
         // 将globalQueue转入defQueue
         function getGlobalQueue() {
             //Push all the globalDefQueue items into the context's defQueue
@@ -240,7 +206,11 @@ var fwjs, require, define;
             }
         }
         context.Module = Module;
-        context.require = localRequire;
+        context.require = function (deps, callback){
+            //console.log(deps, callback)
+            var requireMod = getModule(makeModuleMap(null));
+            requireMod.init(deps, callback);
+        };
         context.onScriptLoad = function(evt){
             if (evt.type == "load") {
                 var node = evt.currentTarget || evt.srcElement;
@@ -266,13 +236,13 @@ var fwjs, require, define;
                 }
                 if (!getOwn(defined, args[0])) {
                     // 依赖载入完成之后，对文件进行初始化
-
                     getModule(makeModuleMap(args[0], null, true)).init(args[1], args[2]);
                 }
             }
         }
         return context;
     }
+    // 入口的require函数
     req = fwjs = require = function(deps, callback) {
         var context = {},
             contextName = defContextName;
@@ -282,25 +252,9 @@ var fwjs, require, define;
         }
         context = getOwn(contexts, contextName);
         if (!context){
-            context = contexts[contextName] = newContext();
+            context = contexts[contextName] = createContext();
         }
         return context.require(deps, callback)
-    }
-    // 创建script节点
-    req.createScriptNode = function () {
-        var node =  document.createElement('script');
-        node.type = 'text/javascript';
-        node.charset = 'utf-8';
-        node.async = true;
-        return node;
-    };
-    // 载入文件
-    req.load = function(context, moduleName, url){
-        var node = req.createScriptNode();
-        node.setAttribute('data-fwmodule', moduleName);
-        node.addEventListener('load', context.onScriptLoad, false);
-        node.src = url;
-        head.appendChild(node)
     }
     // define只允许匿名模块
     define = function(deps, callback){
@@ -313,4 +267,4 @@ var fwjs, require, define;
         globalDefQueue[name] = true;
     }
 
-}(this, (typeof setTimeout === 'undefined' ? undefined : setTimeout)))
+}(this))

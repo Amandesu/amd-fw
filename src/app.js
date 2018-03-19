@@ -3,11 +3,9 @@
     size: "unisize"
 });
  */
-define(["require", "a"],function () {
+define(function () {
     //Do setup work here
-    console.log(require("a"))
     return {
-        color: "black",
-        size: "unisize"
+        name:"app"
     }
 });
